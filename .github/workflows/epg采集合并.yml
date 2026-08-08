@@ -5,21 +5,26 @@ on:
     - cron: '5 */6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write  # 关键：给 GITHUB_TOKEN 写权限
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install selenium requests futures eventlet pytz lxml
 
       - name: Run iptv
@@ -29,6 +34,6 @@ jobs:
         run: |
           git config --local user.email "actions@126.com"
           git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Add generated file" *.xml
+          git add *.xml
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update EPG - $(date '+%Y-%m-%d %H:%M')"
           git push -f
